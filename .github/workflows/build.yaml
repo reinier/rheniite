@@ -1,0 +1,58 @@
+name: Build rheniite
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  schedule:
+    - cron: "0 2 * * *"   # daily: pick up new zirconium base images
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGE_NAME: rheniite
+  REGISTRY: ghcr.io/${{ github.repository_owner }}
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image
+        run: podman build --pull=always -f Containerfile -t "${IMAGE_NAME}:latest" .
+
+      - name: Lint
+        run: podman run --rm --entrypoint bootc "${IMAGE_NAME}:latest" container lint
+
+      - name: Push (signed with SIGNING_SECRET when available)
+        if: github.event_name != 'pull_request'
+        env:
+          SIGNING_SECRET: ${{ secrets.SIGNING_SECRET }}
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | podman login ghcr.io -u "${{ github.actor }}" --password-stdin
+          podman tag "${IMAGE_NAME}:latest" "${REGISTRY}/${IMAGE_NAME}:latest"
+
+          sign_args=()
+          if [ -n "${SIGNING_SECRET}" ]; then
+            key_file="$(mktemp)"
+            printf '%s' "${SIGNING_SECRET}" > "${key_file}"
+            trap 'rm -f "${key_file}"' EXIT
+            # Same sigstore-signing mechanism the zirconium base uses, so the
+            # signature is verifiable by the policy.json baked into the image.
+            sign_args=(--sign-passphrase-file=/dev/null "--sign-by-sigstore-private-key=${key_file}")
+          else
+            echo "::warning::SIGNING_SECRET is not set — pushing UNSIGNED. The baked policy.json requires a signature, so 'bootc switch' to this image will be REJECTED until the secret is configured."
+          fi
+
+          podman push "${sign_args[@]}" "${REGISTRY}/${IMAGE_NAME}:latest"
