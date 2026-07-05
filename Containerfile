@@ -31,37 +31,8 @@ RUN rpm --import https://downloads.1password.com/linux/keys/1password.asc \
 # signing key and add a sigstoreSigned entry for the ghcr.io/reinier namespace.
 # CI signs the pushed image with the matching private key (SIGNING_SECRET).
 COPY reinier.pub /usr/share/pki/containers/reinier.pub
-RUN python3 - <<'PY'
-import json, os
-# The base manages its container policy via the bootc factory template
-# (/usr/share/factory/etc/containers/policy.json), which populates /etc at boot;
-# some builds also materialize /etc directly. Patch every policy.json that
-# exists so the reinier trust entry is present whichever file the system reads.
-candidates = [
-    "/usr/share/factory/etc/containers/policy.json",
-    "/etc/containers/policy.json",
-    "/usr/share/containers/policy.json",
-]
-entry = [{
-    "type": "sigstoreSigned",
-    "keyPaths": ["/usr/share/pki/containers/reinier.pub"],
-    "signedIdentity": {"type": "matchRepository"},
-}]
-patched = 0
-for p in candidates:
-    if not os.path.exists(p):
-        continue
-    with open(p) as f:
-        policy = json.load(f)
-    policy.setdefault("transports", {}).setdefault("docker", {})["ghcr.io/reinier"] = entry
-    with open(p, "w") as f:
-        json.dump(policy, f, indent=4)
-        f.write("\n")
-    patched += 1
-    print(f"patched {p}")
-if patched == 0:
-    raise SystemExit("no container policy.json found to patch")
-PY
+COPY patch-policy.py /tmp/patch-policy.py
+RUN python3 /tmp/patch-policy.py && rm -f /tmp/patch-policy.py
 
 # Fail the build on real bootc issues (warnings are fine).
 RUN bootc container lint
