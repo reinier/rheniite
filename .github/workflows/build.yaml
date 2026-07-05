@@ -48,6 +48,10 @@ jobs:
             key_file="$(mktemp)"
             printf '%s' "${SIGNING_SECRET}" > "${key_file}"
             trap 'rm -f "${key_file}"' EXIT
+            # Storing sigstore signatures as registry attachments is off by
+            # default; enable it for our namespace (as the zirconium base does).
+            printf 'docker:\n  %s:\n    use-sigstore-attachments: true\n' "${REGISTRY}" \
+              | sudo tee /etc/containers/registries.d/reinier.yaml >/dev/null
             # Same sigstore-signing mechanism the zirconium base uses, so the
             # signature is verifiable by the policy.json baked into the image.
             sign_args=(--sign-passphrase-file=/dev/null "--sign-by-sigstore-private-key=${key_file}")
