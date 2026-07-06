@@ -47,5 +47,15 @@ COPY reinier.pub /usr/share/pki/containers/reinier.pub
 COPY patch-policy.py /tmp/patch-policy.py
 RUN python3 /tmp/patch-policy.py && rm -f /tmp/patch-policy.py
 
+# sigstoreSigned above only takes effect if the reader is told to fetch sigstore
+# *attachment* signatures for this namespace — otherwise verification looks in the
+# wrong place and fails with "a signature was required, but no signature exists".
+# The base ships this only for ghcr.io/zirconium-dev, so add ghcr.io/reinier.
+# Written to both the factory template and /etc (whichever the system reads).
+COPY files/reinier-registries.yaml /usr/share/factory/etc/containers/registries.d/reinier.yaml
+RUN mkdir -p /etc/containers/registries.d \
+ && cp /usr/share/factory/etc/containers/registries.d/reinier.yaml \
+       /etc/containers/registries.d/reinier.yaml
+
 # Fail the build on real bootc issues (warnings are fine).
 RUN bootc container lint
