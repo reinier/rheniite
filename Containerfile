@@ -2,40 +2,14 @@
 # The base is the pristine fork's published image, so rebuilds pick up new bases.
 FROM ghcr.io/reinier/zirconium:latest
 
-# --- 1Password (desktop app + CLI) ---
-# The modern 1Password RPM installs entirely under /usr and ships its own
-# sysusers.d for the onepassword / onepassword-cli groups. Its aarch64 repo ships
-# only the CLI (no desktop app), so this image targets x86_64.
-COPY 1password.repo /etc/yum.repos.d/1password.repo
-RUN rpm --import https://downloads.1password.com/linux/keys/1password.asc \
- && dnf5 -y install 1password 1password-cli \
- && rm -f /etc/yum.repos.d/1password.repo \
- # Create onepassword / onepassword-cli (from the RPM's sysusers.d) now, so we
- # can bake the setgid bits into /usr — which is read-only at runtime.
- && systemd-sysusers \
- # chrome-sandbox: setuid root (Electron sandbox, electron/electron#17972).
- && chmod 4755 /usr/share/1password/chrome-sandbox \
- # BrowserSupport: setgid onepassword (browser-extension <-> desktop-app link).
- && chgrp onepassword /usr/libexec/1Password-BrowserSupport \
- && chmod 2755 /usr/libexec/1Password-BrowserSupport \
- # op: setgid onepassword-cli (CLI <-> desktop-app link and SSH agent).
- && chgrp onepassword-cli /usr/bin/op \
- && chmod 2755 /usr/bin/op \
- # Let Flatpak-packaged browsers reach the desktop app for the extension.
- && printf '\nflatpak-session-helper\n' >> /etc/1password/custom_allowed_browsers
-
-# --- 1Password <-> Flatpak browser bridge (per-user, at login) ---
-# custom_allowed_browsers + setgid above are only the host-side half. A sandboxed
-# browser also needs a native-messaging manifest + a flatpak-spawn wrapper + a
-# D-Bus override inside its own ~/.var/app/<id> tree — per-user state that can't
-# live in the read-only image. Ship a systemd --user oneshot that writes those
-# for every installed Flatpak browser at login, enabled globally for all users.
-COPY files/1password-flatpak-setup /usr/libexec/rheniite/1password-flatpak-setup
-COPY files/1password-flatpak-setup.service /usr/lib/systemd/user/1password-flatpak-setup.service
-RUN chmod 0755 /usr/libexec/rheniite/1password-flatpak-setup \
- && mkdir -p /usr/lib/systemd/user/default.target.wants \
- && ln -sf ../1password-flatpak-setup.service \
-      /usr/lib/systemd/user/default.target.wants/1password-flatpak-setup.service
+# --- Web browsers (native RPMs) ---
+# Native (non-Flatpak) browsers integrate with 1Password through the standard
+# system native-messaging manifests and pass its browser verification with no
+# per-app wrappers, D-Bus overrides, or custom_allowed_browsers entries.
+# 1Password itself is intentionally NOT baked in here — it's run via distrobox
+# instead (its export feature works there, unlike the RPM build).
+RUN dnf5 -y install firefox chromium \
+ && dnf5 clean all
 
 # --- Image-update trust ---
 # rheniite is what this machine boots, so it must verify its own update stream
