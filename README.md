@@ -20,6 +20,14 @@ sudo bootc switch ghcr.io/reinier/rheniite:latest
   - setuid/setgid bits baked into `/usr` (`chrome-sandbox`,
     `1Password-BrowserSupport`, `op`) — required for its integrity checks
 - **`kernel.yama.ptrace_scope = 1`** (a `sysctl.d` drop-in) — see below.
+- **CLI toolkit**: `fish`, `starship`, `eza`, `bat`, `jq`, `zip`, `lazygit`, `yazi`
+  (Fedora main + Terra). Moved here off the per-user Homebrew install the dotfiles
+  used to do on first apply.
+- **VSCodium** (`codium`) from its official RPM repo — native, so the integrated
+  terminal is the real host shell (brew tools / `op` / podman / distrobox on PATH).
+- **keyd** — the tap-hold Super key. Built from source (pinned tag) in a throwaway
+  stage; only the artifacts ship. The personal mapping + `keyd.service` enablement
+  live in the [dotfiles](https://forge.personalos.nl/reinierladan/dotfiles-rheniite).
 
 ## 1Password + browsers
 

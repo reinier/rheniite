@@ -1,3 +1,15 @@
+# --- keyd: build from source, pinned to an upstream release tag ---
+# Built in a throwaway stage so the toolchain (git/make/gcc) never ships in the
+# final image — only the artifacts are COPYed in below. Builder is fedora:44 to
+# match the base's Fedora release, so the compiled binary is ABI-compatible.
+# Bump KEYD_VERSION deliberately on new upstream releases.
+FROM registry.fedoraproject.org/fedora:44 AS keyd-build
+ARG KEYD_VERSION=v2.6.0
+RUN dnf5 -y install git make gcc kernel-headers \
+ && git clone --depth 1 --branch "$KEYD_VERSION" https://github.com/rvaiya/keyd /src \
+ && make -C /src PREFIX=/usr \
+ && make -C /src PREFIX=/usr DESTDIR=/out install
+
 # Personal bootc image layered on top of the Zirconium base.
 # The base is the pristine fork's published image, so rebuilds pick up new bases.
 FROM ghcr.io/reinier/zirconium:latest
@@ -37,6 +49,30 @@ RUN rpm --import https://downloads.1password.com/linux/keys/1password.asc \
 # 1Password's hardened runtime needs restricted ptrace, or its portal file
 # pickers silently no-op (this is what broke 1PUX export). See the drop-in.
 COPY files/60-1password-ptrace.conf /usr/lib/sysctl.d/60-1password-ptrace.conf
+
+# --- CLI toolkit (moved off Homebrew in dotfiles-rheniite) ---
+# fish / eza / bat / jq / zip from Fedora main; starship / lazygit / yazi from Terra
+# (already enabled by the base's terra-release). Baking these means they're present
+# at boot and update with the image instead of via a per-user `brew install`.
+RUN dnf5 -y install \
+      fish eza bat jq zip \
+      starship lazygit yazi \
+ && dnf5 clean all
+
+# --- VSCodium (native editor, from VSCodium's own RPM repo) ---
+# Native (not Flatpak) so the integrated terminal is the real host shell with brew
+# tools / op / podman / distrobox on PATH — the right fit for this dev-focused image.
+# paulcarroty's repo is VSCodium's canonical RPM channel (see vscodium.com/install).
+COPY vscodium.repo /etc/yum.repos.d/vscodium.repo
+RUN dnf5 -y install codium \
+ && rm -f /etc/yum.repos.d/vscodium.repo \
+ && dnf5 clean all
+
+# --- keyd (the tap-hold Super key) ---
+# Built from source in the keyd-build stage above (pinned tag, no third-party COPR).
+# Copy in just the artifacts — binary, systemd unit, man pages — so the toolchain
+# never ships. Enablement + the personal mapping live in dotfiles-rheniite.
+COPY --from=keyd-build /out/ /
 
 # --- Image-update trust ---
 # rheniite is what this machine boots, so it must verify its own update stream
