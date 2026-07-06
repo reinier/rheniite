@@ -20,7 +20,32 @@ sudo bootc switch ghcr.io/reinier/rheniite:latest
   - `onepassword` / `onepassword-cli` groups via the RPM's own `sysusers.d`
   - the setuid/setgid bits baked into `/usr` (`chrome-sandbox`,
     `1Password-BrowserSupport`, `op`)
-  - Flatpak browser integration (`flatpak-session-helper`)
+  - **Flatpak browser integration**, fully automatic (see below)
+
+## Flatpak browser integration
+
+1Password officially [doesn't support](https://support.1password.com/connect-1password-browser-app/)
+talking to a Flatpak-packaged browser: the desktop app can't reach a sandboxed
+browser's native-messaging host, and the browser can't exec the host helper. The
+host-side half is baked into the image (`1Password-BrowserSupport` is setgid, and
+`flatpak-session-helper` is in `/etc/1password/custom_allowed_browsers`). The
+per-user half can't live in the read-only image, so a systemd **user** service
+(`1password-flatpak-setup.service`, enabled for all users) runs at login and, for
+every installed Flatpak browser, writes into its `~/.var/app/<id>` sandbox:
+
+- a `flatpak-spawn --host …/1Password-BrowserSupport` wrapper,
+- a `com.1password.1password` native-messaging manifest pointing at it, and
+- a `--talk-name=org.freedesktop.Flatpak` override.
+
+Just install a browser as Flatpak and log in again (or `systemctl --user start
+1password-flatpak-setup`); then fully quit and reopen the browser. Supported
+browsers are listed in `files/1password-flatpak-setup` — add app-ids there for
+others.
+
+> ⚠️ **Security trade-off:** `flatpak-session-helper` in `custom_allowed_browsers`
+> is the only way 1Password can accept a Flatpak connection (it only ever sees
+> that helper, not the real browser), and it whitelists **every** Flatpak app to
+> 1Password — not just browsers. This is inherent to the workaround.
 
 ## Signed updates
 

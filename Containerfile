@@ -24,6 +24,19 @@ RUN rpm --import https://downloads.1password.com/linux/keys/1password.asc \
  # Let Flatpak-packaged browsers reach the desktop app for the extension.
  && printf '\nflatpak-session-helper\n' >> /etc/1password/custom_allowed_browsers
 
+# --- 1Password <-> Flatpak browser bridge (per-user, at login) ---
+# custom_allowed_browsers + setgid above are only the host-side half. A sandboxed
+# browser also needs a native-messaging manifest + a flatpak-spawn wrapper + a
+# D-Bus override inside its own ~/.var/app/<id> tree — per-user state that can't
+# live in the read-only image. Ship a systemd --user oneshot that writes those
+# for every installed Flatpak browser at login, enabled globally for all users.
+COPY files/1password-flatpak-setup /usr/libexec/rheniite/1password-flatpak-setup
+COPY files/1password-flatpak-setup.service /usr/lib/systemd/user/1password-flatpak-setup.service
+RUN chmod 0755 /usr/libexec/rheniite/1password-flatpak-setup \
+ && mkdir -p /usr/lib/systemd/user/default.target.wants \
+ && ln -sf ../1password-flatpak-setup.service \
+      /usr/lib/systemd/user/default.target.wants/1password-flatpak-setup.service
+
 # --- Image-update trust ---
 # rheniite is what this machine boots, so it must verify its own update stream
 # (ghcr.io/reinier/rheniite) rather than inherit that trust from the base — the
