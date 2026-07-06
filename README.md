@@ -15,20 +15,30 @@ sudo bootc switch ghcr.io/reinier/rheniite:latest
 ## What it adds
 
 - **Web browsers** (native RPMs): `firefox` and `chromium`.
+- **1Password** desktop app + `op` CLI (official RPM):
+  - `onepassword` / `onepassword-cli` groups via the RPM's own `sysusers.d`
+  - setuid/setgid bits baked into `/usr` (`chrome-sandbox`,
+    `1Password-BrowserSupport`, `op`) — required for its integrity checks
+- **`kernel.yama.ptrace_scope = 1`** (a `sysctl.d` drop-in) — see below.
 
-Native browsers integrate with 1Password using the standard system
-native-messaging manifests and pass its browser verification with no wrappers,
-D-Bus overrides, or `custom_allowed_browsers` entries.
+## 1Password + browsers
 
-## 1Password
+The **native** `firefox`/`chromium` above integrate with 1Password through the
+standard system native-messaging manifests and pass its browser verification —
+no wrappers, D-Bus overrides, or `custom_allowed_browsers` entries needed.
 
-1Password is **not** baked into the image. The RPM build's export feature is
-broken, so 1Password runs via **distrobox** instead (where export works), and
-integrates with the native browsers above.
+1Password's file pickers (1PUX **export**, import, file attachment, item icons)
+rely on a hardened runtime that validates its `xdg-desktop-portal` FileChooser
+peer via `/proc/<pid>/root`. With `kernel.yama.ptrace_scope=0` (the previous
+default) that access is denied and every picker **silently no-ops** — no dialog,
+no error. Setting `ptrace_scope=1` fixes it; it's also the Debian/Ubuntu/Arch
+default and a security hardening. That's why 1PUX export was broken before.
 
-> Earlier revisions baked the 1Password RPM in and bridged it to Flatpak browsers
-> (setgid `BrowserSupport` + `flatpak-session-helper` + a per-user login service).
-> See git history if that approach is ever needed again.
+> Earlier revisions ran 1Password via distrobox/Homebrew to work around the
+> broken export, and bridged the RPM build to *Flatpak* browsers (setgid
+> `BrowserSupport` + `flatpak-session-helper` + a per-user login service). Both
+> are obsolete now that the root cause (ptrace_scope) is fixed and browsers are
+> native. See git history if ever needed again.
 
 ## Signed updates
 
