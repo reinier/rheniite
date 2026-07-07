@@ -3,12 +3,18 @@
 # final image — only the artifacts are COPYed in below. Builder is fedora:44 to
 # match the base's Fedora release, so the compiled binary is ABI-compatible.
 # Bump KEYD_VERSION deliberately on new upstream releases.
+#
+# FORCE_SYSTEMD=1 is required: keyd's Makefile only installs keyd.service when
+# /run/systemd/system exists (or FORCE_SYSTEMD is set). There's no running
+# systemd inside a container build stage, so without it the unit is silently
+# skipped, never lands in /out, and the final image ships the binary but no
+# service — leaving `keyd.service does not exist` at runtime.
 FROM registry.fedoraproject.org/fedora:44 AS keyd-build
 ARG KEYD_VERSION=v2.6.0
 RUN dnf5 -y install git make gcc kernel-headers \
  && git clone --depth 1 --branch "$KEYD_VERSION" https://github.com/rvaiya/keyd /src \
  && make -C /src PREFIX=/usr \
- && make -C /src PREFIX=/usr DESTDIR=/out install
+ && make -C /src PREFIX=/usr DESTDIR=/out FORCE_SYSTEMD=1 install
 
 # Personal bootc image layered on top of the Zirconium base.
 # The base is the pristine fork's published image, so rebuilds pick up new bases.
