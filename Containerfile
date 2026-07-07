@@ -82,6 +82,11 @@ RUN dnf5 -y install codium \
  && rm -f /etc/yum.repos.d/vscodium.repo \
  && dnf5 clean all
 
+# --- Kitty (GPU-accelerated terminal) ---
+# From Fedora main. Pulls in kitty-terminfo so remote hosts resolve TERM=xterm-kitty.
+RUN dnf5 -y install kitty \
+ && dnf5 clean all
+
 # --- keyd (the tap-hold Super key) ---
 # Built from source in the keyd-build stage above (pinned tag, no third-party COPR).
 # Copy in just the artifacts — binary, systemd unit, man pages — so the toolchain
