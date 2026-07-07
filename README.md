@@ -27,6 +27,7 @@ sudo bootc switch ghcr.io/reinier/rheniite:latest
   used to do on first apply.
 - **VSCodium** (`codium`) from its official RPM repo — native, so the integrated
   terminal is the real host shell (brew tools / `op` / podman / distrobox on PATH).
+- **Kitty** (`kitty`) — GPU-accelerated terminal, from Fedora main.
 - **keyd** — the tap-hold Super key. Built from source (pinned tag) in a throwaway
   stage; only the artifacts ship. The personal mapping + `keyd.service` enablement
   live in the [dotfiles](https://forge.personalos.nl/reinierladan/dotfiles-rheniite).
