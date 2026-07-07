@@ -15,6 +15,8 @@ sudo bootc switch ghcr.io/reinier/rheniite:latest
 ## What it adds
 
 - **Web browsers** (native RPMs): `firefox` and `chromium`.
+- **Nextcloud** desktop sync client (`nextcloud-client`) + `nextcloud-client-nautilus`
+  for GNOME Files sync-status emblems / share actions — native, not Flatpak.
 - **1Password** desktop app + `op` CLI (official RPM):
   - `onepassword` / `onepassword-cli` groups via the RPM's own `sysusers.d`
   - setuid/setgid bits baked into `/usr` (`chrome-sandbox`,

@@ -21,6 +21,14 @@ FROM ghcr.io/reinier/zirconium:latest
 RUN dnf5 -y install firefox chromium \
  && dnf5 clean all
 
+# --- Nextcloud (native sync client + Nautilus integration) ---
+# Native RPM instead of the Flatpak, so nextcloud-client-nautilus can hook GNOME
+# Files for sync-status emblems + share actions — which a sandboxed Flatpak can't.
+# The dotfiles autostart `nextcloud --background` and no longer ship the Flatpak
+# single-instance-lock wrapper (that was only needed for DMS<->GNOME switching).
+RUN dnf5 -y install nextcloud-client nextcloud-client-nautilus \
+ && dnf5 clean all
+
 # --- 1Password (desktop app + CLI) ---
 # The modern 1Password RPM installs entirely under /usr and ships its own
 # sysusers.d for the onepassword / onepassword-cli groups. The setgid/setuid
