@@ -97,6 +97,18 @@ RUN dnf5 -y install kitty \
 # never ships. Enablement + the personal mapping live in dotfiles-rheniite.
 COPY --from=keyd-build /out/ /
 
+# --- System defaults (first-boot setup that shouldn't need interactive sudo) ---
+# Timezone baked in so a fresh install has the right clock without a `sudo
+# timedatectl` step mid-`chezmoi apply` (which prompts for a password late in a
+# long apply and times out if you've stepped away). Overridable per machine with
+# `timedatectl set-timezone`. NTP/chronyd is already enabled by the base.
+RUN ln -sf ../usr/share/zoneinfo/Europe/Amsterdam /etc/localtime
+
+# Enable tailscaled so the daemon runs from boot. Without this its socket doesn't
+# exist and the dotfiles' `tailscale set --operator` fails ("tailscaled.service not
+# running"). Enabling it here leaves only the interactive `tailscale up` to you.
+RUN systemctl enable tailscaled.service
+
 # --- Image-update trust ---
 # rheniite is what this machine boots, so it must verify its own update stream
 # (ghcr.io/reinier/rheniite) rather than inherit that trust from the base — the
