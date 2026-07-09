@@ -1,10 +1,16 @@
 # rheniite
 
 A personal [bootc](https://bootc-dev.github.io/bootc/) image built on top of
-[Zirconium](https://github.com/reinier/zirconium) (`ghcr.io/reinier/zirconium`).
+[Zirconium](https://github.com/zirconium-dev/zirconium)
+(`ghcr.io/zirconium-dev/zirconium`).
 
-Zirconium is the base OS — a fork I control and rebuild. **rheniite** is the
+Zirconium is the base OS — the official upstream image. **rheniite** is the
 declarative layer on top that adds my extra software and config.
+
+> I keep a personal fork at `ghcr.io/reinier/zirconium` as a fallback: if an
+> upstream Zirconium update ever regresses, I can point the `FROM` in the
+> `Containerfile` back at the fork (a base I know builds and boots) until
+> upstream is fixed.
 
 ## Install / rebase
 
@@ -63,6 +69,6 @@ system verifies its own `bootc` updates.
 
 ## How it builds
 
-`Containerfile` does `FROM ghcr.io/reinier/zirconium:latest` and layers the
+`Containerfile` does `FROM ghcr.io/zirconium-dev/zirconium:latest` and layers the
 above. CI rebuilds on pushes to `main`, on PRs, and daily (to pick up new
 Zirconium base images). The image is built for **x86_64**.

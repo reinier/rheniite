@@ -2,8 +2,8 @@
 """Add a sigstoreSigned trust entry for the ghcr.io/reinier namespace.
 
 rheniite is what this machine boots, so it must verify its own update stream
-rather than inherit that trust from the base (the pristine zirconium fork only
-bakes upstream's policy). The base manages its container policy via the bootc
+rather than inherit that trust from the base (the upstream zirconium base only
+bakes its own policy). The base manages its container policy via the bootc
 factory template (/usr/share/factory/etc/containers/policy.json), which populates
 /etc at boot; some builds also materialize /etc directly. Patch every policy.json
 that exists so the entry is present whichever file the system ends up reading.

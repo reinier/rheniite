@@ -17,8 +17,10 @@ RUN dnf5 -y install git make gcc kernel-headers \
  && make -C /src PREFIX=/usr DESTDIR=/out FORCE_SYSTEMD=1 install
 
 # Personal bootc image layered on top of the Zirconium base.
-# The base is the pristine fork's published image, so rebuilds pick up new bases.
-FROM ghcr.io/reinier/zirconium:latest
+# The base is the official upstream Zirconium image, so rebuilds pick up new
+# bases. (A personal fork at ghcr.io/reinier/zirconium is kept as a fallback for
+# when an upstream update regresses — swap the FROM back to it if ever needed.)
+FROM ghcr.io/zirconium-dev/zirconium:latest
 
 # --- Web browsers (native RPMs) ---
 # Native (non-Flatpak) browsers integrate with 1Password through the standard
@@ -96,7 +98,7 @@ COPY --from=keyd-build /out/ /
 # --- Image-update trust ---
 # rheniite is what this machine boots, so it must verify its own update stream
 # (ghcr.io/reinier/rheniite) rather than inherit that trust from the base — the
-# pristine zirconium fork only bakes upstream's policy. Install reinier's public
+# upstream zirconium base only bakes its own policy. Install reinier's public
 # signing key and add a sigstoreSigned entry for the ghcr.io/reinier namespace.
 # CI signs the pushed image with the matching private key (SIGNING_SECRET).
 COPY reinier.pub /usr/share/pki/containers/reinier.pub
