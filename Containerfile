@@ -67,11 +67,13 @@ RUN rpm --import https://downloads.1password.com/linux/keys/1password.asc \
 COPY files/60-1password-ptrace.conf /usr/lib/sysctl.d/60-1password-ptrace.conf
 
 # --- CLI toolkit (moved off Homebrew in dotfiles-rheniite) ---
-# fish / eza / bat / jq / zip from Fedora main; starship / lazygit / yazi from Terra
-# (already enabled by the base's terra-release). Baking these means they're present
-# at boot and update with the image instead of via a per-user `brew install`.
+# fish / eza / bat / jq / zip / fuse-sshfs from Fedora main; starship / lazygit / yazi
+# from Terra (already enabled by the base's terra-release). Baking these means they're
+# present at boot and update with the image instead of via a per-user `brew install`.
+# fuse-sshfs is the Fedora package name for the sshfs FUSE filesystem (mount remote
+# hosts over SSH); the `sshfs` command ships inside it.
 RUN dnf5 -y install \
-      fish eza bat jq zip \
+      fish eza bat jq zip fuse-sshfs \
       starship lazygit yazi \
  && dnf5 clean all
 
