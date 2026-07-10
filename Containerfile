@@ -97,10 +97,10 @@ RUN dnf5 -y install kitty \
 # backend doesn't advertise — so this ships a self-contained GTK tool instead.
 # system-config-printer drives CUPS via the cups-pk-helper polkit mechanism, so a
 # wheel user adds/removes printers with their own password (no root, no CUPS
-# SystemGroup membership). avahi + nss-mdns give mDNS discovery so a WiFi
-# (driverless IPP) printer is found automatically.
-RUN dnf5 -y install system-config-printer avahi nss-mdns \
- && systemctl enable avahi-daemon.service \
+# SystemGroup membership). avahi/nss-mdns aren't added here: the base already
+# provides mDNS discovery (a WiFi printer is found out of the box), and driverless
+# dnssd:// queues resolve through libavahi at print time, not NSS.
+RUN dnf5 -y install system-config-printer \
  && dnf5 clean all
 
 # --- keyd (the tap-hold Super key) ---
