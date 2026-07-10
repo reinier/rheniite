@@ -91,6 +91,18 @@ RUN dnf5 -y install codium \
 RUN dnf5 -y install kitty \
  && dnf5 clean all
 
+# --- Printer management GUI (standalone; no GNOME Control Center on niri) ---
+# CUPS itself comes from the base (socket-activated cups.socket). The DMS printer
+# panel routes through the dms backend's "cups" capability, which this image's
+# backend doesn't advertise — so this ships a self-contained GTK tool instead.
+# system-config-printer drives CUPS via the cups-pk-helper polkit mechanism, so a
+# wheel user adds/removes printers with their own password (no root, no CUPS
+# SystemGroup membership). avahi + nss-mdns give mDNS discovery so a WiFi
+# (driverless IPP) printer is found automatically.
+RUN dnf5 -y install system-config-printer avahi nss-mdns \
+ && systemctl enable avahi-daemon.service \
+ && dnf5 clean all
+
 # --- keyd (the tap-hold Super key) ---
 # Built from source in the keyd-build stage above (pinned tag, no third-party COPR).
 # Copy in just the artifacts — binary, systemd unit, man pages — so the toolchain
