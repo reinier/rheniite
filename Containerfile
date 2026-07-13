@@ -26,15 +26,17 @@ FROM ghcr.io/zirconium-dev/zirconium:latest
 # Native (non-Flatpak) browsers integrate with 1Password through the standard
 # system native-messaging manifests and pass its browser verification with no
 # per-app wrappers, D-Bus overrides, or custom_allowed_browsers entries.
-# chromium-freeworld (RPM Fusion) replaces Fedora's stock chromium, which is
-# built with ffmpeg_branding="Chromium" and strips H.264/AAC — breaking Teams
-# WebRTC video and <video> mp4 playback. RPM Fusion rebuilds with
-# ffmpeg_branding="Chrome" + proprietary_codecs=true, bundling codecs while
-# keeping the native browser for 1Password native-messaging and chrome-* app_ids.
+# Fedora's stock chromium is built with ffmpeg_branding="Chromium" and strips
+# H.264/AAC — breaking Teams WebRTC video and <video> mp4 playback. RPM Fusion's
+# chromium-libs-media-freeworld is a drop-in replacement for chromium-libs-media,
+# rebuilt with ffmpeg_branding="Chrome" + proprietary_codecs=true; it swaps only
+# the ffmpeg media libs, so the native Fedora chromium browser (and its 1Password
+# native-messaging + chrome-* app_ids) is preserved with full codec support.
+# (The old whole-browser chromium-freeworld package was retired by RPM Fusion.)
+# chromium-libs-media-freeworld lives in the free repo, so only that release is added.
 RUN dnf5 -y install \
       "https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm" \
-      "https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm" \
- && dnf5 -y install firefox chromium-freeworld \
+ && dnf5 -y install firefox chromium chromium-libs-media-freeworld \
  && rm -f /etc/yum.repos.d/rpmfusion-*.repo \
  && dnf5 clean all
 
