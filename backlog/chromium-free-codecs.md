@@ -1,11 +1,32 @@
 # Chromium with free codecs (H.264 for WebRTC / `<video>`)
 
-- **Status:** done (Containerfile: chromium → chromium-freeworld via RPM Fusion)
+- **Status:** done (Containerfile: stock `chromium` + RPM Fusion `libavcodec-freeworld`)
 - **Created:** 2026-07-13
 - **Area:** image (`Containerfile`)
 - **Related:** Teams video was broken → worked around with the `teams_for_linux`
   Flatpak (dotfiles-rheniite `run_onchange_install-flatpaks.sh`). This item is the
   proper fix for *native* Chromium so the workaround can eventually be dropped.
+
+## Resolution
+
+Shipped as neither Option A nor B exactly. On Fedora 44 the codec story changed:
+Fedora's `chromium` now links the **system** ffmpeg (`libavcodec`) instead of a
+bundled copy (rhbz#2053867). As a result RPM Fusion **retired** both
+`chromium-freeworld` and `chromium-libs-media-freeworld` — neither exists for f44
+(the free repo ships no `chromium*` packages at all), so Option B as originally
+written fails to build (`No match for argument`).
+
+The working fix keeps stock `chromium` and adds **`libavcodec-freeworld`** from
+RPM Fusion free. It supplies H.264/AAC in the system `libavcodec` *alongside* the
+base `ffmpeg-free` (additive — no `dnf swap` / `--allowerasing`, no base-package
+churn), and the native chromium picks the codecs up. Only the RPM Fusion **free**
+release repo is added (removed after install); no nonfree repo needed. The native
+browser — 1Password native-messaging and `chrome-*` app_ids — is untouched, which
+is what Option B set out to protect. The Options analysis below is kept for history.
+
+> Verified present: `libavcodec-freeworld-8.0.1-6.fc44.x86_64.rpm` in
+> rpmfusion-free `releases/44`. The redistribution caveat from Option B still
+> applies — this bakes proprietary H.264/AAC into a hosted image, a conscious call.
 
 ## Problem
 
