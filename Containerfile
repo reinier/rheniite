@@ -26,7 +26,16 @@ FROM ghcr.io/zirconium-dev/zirconium:latest
 # Native (non-Flatpak) browsers integrate with 1Password through the standard
 # system native-messaging manifests and pass its browser verification with no
 # per-app wrappers, D-Bus overrides, or custom_allowed_browsers entries.
-RUN dnf5 -y install firefox chromium \
+# chromium-freeworld (RPM Fusion) replaces Fedora's stock chromium, which is
+# built with ffmpeg_branding="Chromium" and strips H.264/AAC — breaking Teams
+# WebRTC video and <video> mp4 playback. RPM Fusion rebuilds with
+# ffmpeg_branding="Chrome" + proprietary_codecs=true, bundling codecs while
+# keeping the native browser for 1Password native-messaging and chrome-* app_ids.
+RUN dnf5 -y install \
+      "https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm" \
+      "https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm" \
+ && dnf5 -y install firefox chromium-freeworld \
+ && rm -f /etc/yum.repos.d/rpmfusion-*.repo \
  && dnf5 clean all
 
 # --- Nextcloud (native sync client + Nautilus integration) ---

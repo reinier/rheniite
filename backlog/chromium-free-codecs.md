@@ -1,6 +1,6 @@
 # Chromium with free codecs (H.264 for WebRTC / `<video>`)
 
-- **Status:** proposed
+- **Status:** done (Containerfile: chromium → chromium-freeworld via RPM Fusion)
 - **Created:** 2026-07-13
 - **Area:** image (`Containerfile`)
 - **Related:** Teams video was broken → worked around with the `teams_for_linux`
