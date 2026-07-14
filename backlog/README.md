@@ -33,3 +33,11 @@ later (by you or by Claude) without re-deriving the analysis.
 - [1password-opt-layout.md](1password-opt-layout.md) — 1Password 8.12.28 moved its
   payload to `/opt/1Password`, breaking every image build; same relocation
   treatment as Synology Drive.
+- [pin-stable-base.md](pin-stable-base.md) — pin the base to signed Zirconium
+  snapshots and promote via Renovate/CI instead of rolling `:latest` + daily cron.
+- [stabilize-git-packages.md](stabilize-git-packages.md) — move Zirconium's
+  bleeding-edge git packages (niri, dms, quickshell) to stable releases via the
+  stable sibling COPRs (`avengemedia/dms 1.5.0`, `quickshell 0.3.0`) + Fedora niri.
+- [own-desktop-config.md](own-desktop-config.md) — replace zdots: own the niri/DMS
+  config in dotfiles-rheniite so it matches pinned-stable binaries (partner of the
+  above; zdots is authored for git-DMS and re-applied daily).
