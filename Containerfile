@@ -58,17 +58,26 @@ RUN dnf5 -y install nextcloud-client nextcloud-client-nautilus \
 # (gnome-shell-extension-appindicator) that are dead weight on niri, where DMS
 # already provides the SNI tray for the status icon.
 #
-# The RPM puts its whole payload in /opt/Synology, but /opt is a symlink to
-# var/opt on bootc images and /var content is machine-local: it materializes
-# only on a first deployment, so it would never appear on a rebase of an
-# existing machine and would never receive image updates. Relocate it into
-# /usr (shipped + updated with the image); the tmpfiles.d drop-in recreates
-# the expected /var/opt/Synology path at boot as a symlink back into /usr.
+# The RPM puts its whole payload in /opt/Synology, but on a bootc image /opt
+# is a symlink to var/opt, and rpm's hardened unpacker refuses to create
+# package-owned directories through a symlink — the install aborts with
+# "cpio: mkdir failed - File exists". So: swap /opt for a real directory just
+# for the transaction, then relocate the payload into /usr (shipped + updated
+# with the image — under the symlink it would land in machine-local /var,
+# which materializes only on a first deployment and never updates), and
+# restore the symlink exactly as the base had it (readlink fails the build
+# loudly if a future base stops symlinking /opt; rmdir guards that nothing
+# else was left behind in /opt). The tmpfiles.d drop-in recreates the
+# expected /var/opt/Synology path at boot as a symlink back into /usr.
 COPY synology-drive.repo /etc/yum.repos.d/synology-drive.repo
-RUN dnf5 -y install synology-drive-noextra \
+RUN opt_link="$(readlink /opt)" \
+ && rm /opt && mkdir /opt \
+ && dnf5 -y install synology-drive-noextra \
  && rm -f /etc/yum.repos.d/synology-drive.repo \
  && mkdir -p /usr/lib/opt \
  && mv /opt/Synology /usr/lib/opt/Synology \
+ && rmdir /opt \
+ && ln -s "$opt_link" /opt \
  && dnf5 clean all
 COPY files/synology-drive-opt.conf /usr/lib/tmpfiles.d/synology-drive-opt.conf
 

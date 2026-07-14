@@ -46,12 +46,35 @@ base drops it, the image build fails loudly at the `dnf5 install` step.
 - `synology-drive.repo` — COPR repo file (gpgcheck against the COPR project
   key), added before and removed after the install like the 1Password/VSCodium
   repos.
-- Containerfile: `dnf5 -y install synology-drive-noextra`, then
-  `mv /opt/Synology /usr/lib/opt/Synology` (the `mv` resolves through the
-  `/opt -> var/opt` symlink during the build).
+- Containerfile: swap the `/opt -> var/opt` symlink for a real directory,
+  `dnf5 -y install synology-drive-noextra`, `mv /opt/Synology
+  /usr/lib/opt/Synology`, then restore the symlink (see "First attempt" below
+  for why the swap is required).
 - `files/synology-drive-opt.conf` → `/usr/lib/tmpfiles.d/`: recreates
   `/var/opt/Synology -> /usr/lib/opt/Synology` at boot (`L+`, so a stale
   first-boot copy from an older build can't shadow the shipped payload).
+
+### First attempt failed: rpm won't unpack through the /opt symlink
+
+The first version installed with `/opt` still a symlink, expecting rpm to
+write through it into `/var/opt` and `mv` from there. CI (run 29333778260)
+failed inside the rpm transaction instead:
+
+    >>> [RPM] failed to open dir opt of /opt/Synology/: cpio: mkdir failed - File exists
+    >>> Unpack error: synology-drive-noextra
+
+rpm's unpacker refuses to create package-owned directories *through* a
+symlink (path-traversal hardening): its `mkdir /opt` hits the symlink,
+won't follow it, and the transaction aborts. Fix: make `/opt` a real
+directory for the duration of the transaction, relocate the payload, restore
+the symlink verbatim (`readlink` first, `ln -s` back; `rmdir` in between
+proves nothing else stayed behind in `/opt`). Same end state as planned —
+payload in `/usr/lib/opt/Synology`, no `/opt` content in the image.
+
+The same failed run also settled the two open verification questions
+positively: the COPR has a fedora-44 chroot (key `4DC7...CAF9` imported,
+package `4.0.3-17892.fc44` downloaded), and `gtk2` still resolves in F44
+(`gtk2-2.24.33-25.fc44`).
 
 Autostart/config is a dotfiles-rheniite concern, same as `nextcloud
 --background`.
