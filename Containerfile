@@ -49,6 +49,29 @@ RUN dnf5 -y install \
 RUN dnf5 -y install nextcloud-client nextcloud-client-nautilus \
  && dnf5 clean all
 
+# --- Synology Drive (native sync client + Nautilus integration) ---
+# Unofficial RPM repack of Synology's official client, from the
+# emixampp/synology-drive COPR (github.com/EmixamPP/synology-drive) — cleaner
+# than an alien-converted deb or the Flatpak. The -noextra variant still ships
+# the Nautilus extension (sync emblems + share menu, coexists with the
+# Nextcloud one above), but drops the GNOME-Shell-only weak deps
+# (gnome-shell-extension-appindicator) that are dead weight on niri, where DMS
+# already provides the SNI tray for the status icon.
+#
+# The RPM puts its whole payload in /opt/Synology, but /opt is a symlink to
+# var/opt on bootc images and /var content is machine-local: it materializes
+# only on a first deployment, so it would never appear on a rebase of an
+# existing machine and would never receive image updates. Relocate it into
+# /usr (shipped + updated with the image); the tmpfiles.d drop-in recreates
+# the expected /var/opt/Synology path at boot as a symlink back into /usr.
+COPY synology-drive.repo /etc/yum.repos.d/synology-drive.repo
+RUN dnf5 -y install synology-drive-noextra \
+ && rm -f /etc/yum.repos.d/synology-drive.repo \
+ && mkdir -p /usr/lib/opt \
+ && mv /opt/Synology /usr/lib/opt/Synology \
+ && dnf5 clean all
+COPY files/synology-drive-opt.conf /usr/lib/tmpfiles.d/synology-drive-opt.conf
+
 # --- 1Password (desktop app + CLI) ---
 # The modern 1Password RPM installs entirely under /usr and ships its own
 # sysusers.d for the onepassword / onepassword-cli groups. The setgid/setuid

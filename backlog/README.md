@@ -28,3 +28,5 @@ later (by you or by Claude) without re-deriving the analysis.
 
 - [chromium-free-codecs.md](chromium-free-codecs.md) — native Chromium with H.264
   (WebRTC/`<video>`) so the `teams_for_linux` Flatpak workaround can be retired.
+- [synology-drive.md](synology-drive.md) — native Synology Drive client (COPR RPM,
+  `-noextra` variant) with the `/opt` payload relocated into `/usr` for bootc.
