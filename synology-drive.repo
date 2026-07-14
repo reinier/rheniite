@@ -1,0 +1,9 @@
+[copr:copr.fedorainfracloud.org:emixampp:synology-drive]
+name=Copr repo for synology-drive owned by emixampp
+baseurl=https://download.copr.fedorainfracloud.org/results/emixampp/synology-drive/fedora-$releasever-$basearch/
+type=rpm-md
+enabled=1
+gpgcheck=1
+repo_gpgcheck=0
+gpgkey=https://download.copr.fedorainfracloud.org/results/emixampp/synology-drive/pubkey.gpg
+skip_if_unavailable=False

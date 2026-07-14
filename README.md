@@ -18,11 +18,20 @@ declarative layer on top that adds my extra software and config.
 sudo bootc switch ghcr.io/reinier/rheniite:latest
 ```
 
+Everything below that doesn't come from official Fedora repos is catalogued in
+[docs/third-party-repos.md](docs/third-party-repos.md) — what each source provides, why
+Fedora doesn't, and how it's trusted.
+
 ## What it adds
 
 - **Web browsers** (native RPMs): `firefox` and `chromium`.
 - **Nextcloud** desktop sync client (`nextcloud-client`) + `nextcloud-client-nautilus`
   for GNOME Files sync-status emblems / share actions — native, not Flatpak.
+- **Synology Drive** sync client (`synology-drive-noextra`, from the
+  [emixampp/synology-drive](https://github.com/EmixamPP/synology-drive) COPR) with
+  its Nautilus extension. The `/opt/Synology` payload is relocated into `/usr` so it
+  ships/updates with the image; a `tmpfiles.d` drop-in restores the `/opt` path at
+  boot (see `backlog/synology-drive.md` for the reasoning and rollback plan).
 - **1Password** desktop app + `op` CLI (official RPM):
   - `onepassword` / `onepassword-cli` groups via the RPM's own `sysusers.d`
   - setuid/setgid bits baked into `/usr` (`chrome-sandbox`,
