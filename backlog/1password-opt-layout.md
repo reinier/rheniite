@@ -51,14 +51,15 @@ directory to write into. Whatever it puts there lands in machine-local
 `/var/usrlocal` (first-boot template) — convenience files, not something the
 app needs from the image.
 
-## Open assumptions (CI verifies)
+## Assumptions — verified
 
-Authored blind — the network policy of the authoring environment blocks
-`downloads.1password.com`, so the 8.12.28 layout is inferred from the failure
-log (`/opt/1Password/1Password-BrowserSupport`) and 1Password's classic
-pre-/usr layout. If CI still fails, likely suspects: a hybrid layout keeping
-some binaries under `/usr`, or the `sysusers.d` groups file having moved/been
-replaced by scriptlets (the `chgrp onepassword` would then fail loudly).
+The fix was authored blind (the authoring environment's network policy blocks
+`downloads.1password.com`), inferring the 8.12.28 layout from the failure log
+and 1Password's classic pre-/usr layout. CI run 29340244965 (green, full
+build + `bootc container lint`) confirmed all of it: `chrome-sandbox` and
+`1Password-BrowserSupport` live at the classic locations under the relocated
+`/usr/lib/opt/1Password`, and the `onepassword` / `onepassword-cli` groups
+are still created at install time.
 
 ## Rollback / upstream watch
 
