@@ -36,6 +36,21 @@ The setuid/setgid baking moved with the payload: `chrome-sandbox` and
 `/usr/libexec` in the old layout). `op` is unchanged (`1password-cli` still
 installs to `/usr/bin`).
 
+## Second failure: %post vs the /usr/local symlink
+
+With the /opt swap in place the payload unpacked fine, but 8.12.28's new
+%post scriptlet failed the transaction (CI run 29339938148):
+
+    >>> mkdir: cannot create directory '/usr/local': File exists
+
+/usr/local is a symlink into `var/usrlocal` on this layout, and during a
+container build the target doesn't exist — the symlink dangles, and the
+scriptlet's `mkdir -p` under /usr/local trips over it. Fix: `mkdir -p
+"$(realpath -m /usr/local)"` before the install so the scriptlet has a real
+directory to write into. Whatever it puts there lands in machine-local
+`/var/usrlocal` (first-boot template) — convenience files, not something the
+app needs from the image.
+
 ## Open assumptions (CI verifies)
 
 Authored blind — the network policy of the authoring environment blocks

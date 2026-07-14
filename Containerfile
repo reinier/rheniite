@@ -96,6 +96,11 @@ COPY 1password.repo /etc/yum.repos.d/1password.repo
 RUN rpm --import https://downloads.1password.com/linux/keys/1password.asc \
  && opt_link="$(readlink /opt)" \
  && rm /opt && mkdir /opt \
+ # 8.12.28's %post mkdir -p's under /usr/local, which here is a dangling
+ # symlink into var/usrlocal during the build (mkdir -p then fails with
+ # "File exists"). Materialize the target so the scriptlet succeeds; what it
+ # writes there is machine-local convenience, not needed by the app itself.
+ && mkdir -p "$(realpath -m /usr/local)" \
  && dnf5 -y install 1password 1password-cli \
  && rm -f /etc/yum.repos.d/1password.repo \
  && mkdir -p /usr/lib/opt \
