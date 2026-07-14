@@ -30,3 +30,6 @@ later (by you or by Claude) without re-deriving the analysis.
   (WebRTC/`<video>`) so the `teams_for_linux` Flatpak workaround can be retired.
 - [synology-drive.md](synology-drive.md) — native Synology Drive client (COPR RPM,
   `-noextra` variant) with the `/opt` payload relocated into `/usr` for bootc.
+- [1password-opt-layout.md](1password-opt-layout.md) — 1Password 8.12.28 moved its
+  payload to `/opt/1Password`, breaking every image build; same relocation
+  treatment as Synology Drive.

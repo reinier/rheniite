@@ -82,28 +82,39 @@ RUN opt_link="$(readlink /opt)" \
 COPY files/synology-drive-opt.conf /usr/lib/tmpfiles.d/synology-drive-opt.conf
 
 # --- 1Password (desktop app + CLI) ---
-# The modern 1Password RPM installs entirely under /usr and ships its own
-# sysusers.d for the onepassword / onepassword-cli groups. The setgid/setuid
-# bits below are required even with native browsers: BrowserSupport fails its
-# own integrity check ("running without libc's security") without setgid, and
-# chrome-sandbox needs setuid for the Electron sandbox. aarch64 ships only the
-# CLI (no desktop app), so this image is x86_64.
+# 1Password 8.12.28 moved the desktop app's payload (back) to /opt/1Password
+# — 8.12.26 and earlier installed entirely under /usr — so it now needs the
+# same /opt treatment as Synology Drive above: swap the symlink for a real
+# directory so rpm can unpack, relocate the payload into /usr, restore the
+# symlink, and let the tmpfiles.d drop-in provide /opt/1Password at runtime.
+# The setgid/setuid bits below are required even with native browsers:
+# BrowserSupport fails its own integrity check ("running without libc's
+# security") without setgid, and chrome-sandbox needs setuid for the Electron
+# sandbox. aarch64 ships only the CLI (no desktop app), so this image is
+# x86_64.
 COPY 1password.repo /etc/yum.repos.d/1password.repo
 RUN rpm --import https://downloads.1password.com/linux/keys/1password.asc \
+ && opt_link="$(readlink /opt)" \
+ && rm /opt && mkdir /opt \
  && dnf5 -y install 1password 1password-cli \
  && rm -f /etc/yum.repos.d/1password.repo \
- # Create onepassword / onepassword-cli (from the RPM's sysusers.d) now, so we
- # can bake the setgid bits into /usr — which is read-only at runtime.
+ && mkdir -p /usr/lib/opt \
+ && mv /opt/1Password /usr/lib/opt/1Password \
+ && rmdir /opt \
+ && ln -s "$opt_link" /opt \
+ # Create onepassword / onepassword-cli now, so we can bake the setgid bits
+ # into /usr — which is read-only at runtime.
  && systemd-sysusers \
  # chrome-sandbox: setuid root (Electron sandbox, electron/electron#17972).
- && chmod 4755 /usr/share/1password/chrome-sandbox \
+ && chmod 4755 /usr/lib/opt/1Password/chrome-sandbox \
  # BrowserSupport: setgid onepassword (browser-extension <-> desktop-app link).
- && chgrp onepassword /usr/libexec/1Password-BrowserSupport \
- && chmod 2755 /usr/libexec/1Password-BrowserSupport \
+ && chgrp onepassword /usr/lib/opt/1Password/1Password-BrowserSupport \
+ && chmod 2755 /usr/lib/opt/1Password/1Password-BrowserSupport \
  # op: setgid onepassword-cli (CLI <-> desktop-app link and SSH agent).
  && chgrp onepassword-cli /usr/bin/op \
  && chmod 2755 /usr/bin/op \
  && dnf5 clean all
+COPY files/1password-opt.conf /usr/lib/tmpfiles.d/1password-opt.conf
 
 # --- 1Password file pickers (export/import/attach) ---
 # 1Password's hardened runtime needs restricted ptrace, or its portal file
