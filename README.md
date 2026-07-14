@@ -19,7 +19,7 @@ sudo bootc switch ghcr.io/reinier/rheniite:latest
 ```
 
 Everything below that doesn't come from official Fedora repos is catalogued in
-[third-party-repos.md](third-party-repos.md) — what each source provides, why
+[docs/third-party-repos.md](docs/third-party-repos.md) — what each source provides, why
 Fedora doesn't, and how it's trusted.
 
 ## What it adds
