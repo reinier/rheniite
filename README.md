@@ -38,7 +38,9 @@ Fedora doesn't, and how it's trusted.
   ships/updates with the image; a `tmpfiles.d` drop-in restores the `/opt` path at
   boot (see `backlog/synology-drive.md` for the reasoning and rollback plan).
 - **1Password** desktop app + `op` CLI (official RPM):
-  - `onepassword` / `onepassword-cli` groups via the RPM's own `sysusers.d`
+  - `onepassword` / `onepassword-cli` groups with pinned GIDs (5010/5013), so
+    the setgid bits baked into `/usr` resolve to the same groups on every
+    machine (see `backlog/1password-gid-pinning.md`)
   - setuid/setgid bits baked into `/usr` (`chrome-sandbox`,
     `1Password-BrowserSupport`, `op`) — required for its integrity checks
 - **`kernel.yama.ptrace_scope = 1`** (a `sysctl.d` drop-in) — see below.

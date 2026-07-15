@@ -33,6 +33,9 @@ later (by you or by Claude) without re-deriving the analysis.
 - [1password-opt-layout.md](1password-opt-layout.md) — 1Password 8.12.28 moved its
   payload to `/opt/1Password`, breaking every image build; same relocation
   treatment as Synology Drive.
+- [1password-gid-pinning.md](1password-gid-pinning.md) — pin the
+  onepassword/onepassword-cli GIDs at build time; dynamic sysusers allocation
+  drifted from the machine's /etc/group and broke the browser⇔app link.
 - [var-home-passwd.md](var-home-passwd.md) — the Zirconium ISO creates users with
   `/home/<user>` instead of the atomic-convention `/var/home/<user>`, breaking
   path-canonicalising software (Synology emblems); fixed by a first-boot guard.
