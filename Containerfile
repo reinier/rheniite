@@ -41,20 +41,12 @@ RUN dnf5 -y install \
  && rm -f /etc/yum.repos.d/rpmfusion-*.repo \
  && dnf5 clean all
 
-# --- Nextcloud (native sync client + Nautilus integration) ---
-# Native RPM instead of the Flatpak, so nextcloud-client-nautilus can hook GNOME
-# Files for sync-status emblems + share actions — which a sandboxed Flatpak can't.
-# The dotfiles autostart `nextcloud --background` and no longer ship the Flatpak
-# single-instance-lock wrapper (that was only needed for DMS<->GNOME switching).
-RUN dnf5 -y install nextcloud-client nextcloud-client-nautilus \
- && dnf5 clean all
-
 # --- Synology Drive (native sync client + Nautilus integration) ---
 # Unofficial RPM repack of Synology's official client, from the
 # emixampp/synology-drive COPR (github.com/EmixamPP/synology-drive) — cleaner
 # than an alien-converted deb or the Flatpak. The -noextra variant still ships
-# the Nautilus extension (sync emblems + share menu, coexists with the
-# Nextcloud one above), but drops the GNOME-Shell-only weak deps
+# the Nautilus extension (sync emblems + share menu), but drops the
+# GNOME-Shell-only weak deps
 # (gnome-shell-extension-appindicator) that are dead weight on niri, where DMS
 # already provides the SNI tray for the status icon.
 #

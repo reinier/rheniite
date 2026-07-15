@@ -2,9 +2,8 @@
 
 Everything rheniite installs that does **not** come from the official Fedora
 repositories (Fedora main/updates), and how each source is wired in. Everything
-else in the `Containerfile` — firefox, chromium, nextcloud-client(-nautilus),
-fish, eza, bat, jq, zip, fuse-sshfs, kitty, system-config-printer — is plain
-Fedora main.
+else in the `Containerfile` — firefox, chromium, fish, eza, bat, jq, zip,
+fuse-sshfs, kitty, system-config-printer — is plain Fedora main.
 
 Two properties hold for every RPM source below:
 
