@@ -93,15 +93,24 @@ RUN rpm --import https://downloads.1password.com/linux/keys/1password.asc \
  # "File exists"). Materialize the target so the scriptlet succeeds; what it
  # writes there is machine-local convenience, not needed by the app itself.
  && mkdir -p "$(realpath -m /usr/local)" \
+ # Pin the group GIDs BEFORE the install, so the setgid group baked into the
+ # binaries below means the same thing on every machine. Group ownership
+ # ships as a raw number while /etc/group is machine-local state — letting
+ # systemd-sysusers allocate dynamically here let the two drift: a build
+ # allocated onepassword=5014, the deployed machine had onepassword=5010, so
+ # BrowserSupport's group resolved to UNKNOWN, 1Password's BinaryPermissions
+ # self-check refused it, and the browser extension couldn't connect to the
+ # app (op escaped by luck: both sides happened to land on 5013). Pinned
+ # values = what this machine's /etc/group already carries; fresh installs
+ # inherit them via the image's /etc default. See backlog/1password-gid-pinning.md.
+ && groupadd -g 5010 onepassword \
+ && groupadd -g 5013 onepassword-cli \
  && dnf5 -y install 1password 1password-cli \
  && rm -f /etc/yum.repos.d/1password.repo \
  && mkdir -p /usr/lib/opt \
  && mv /opt/1Password /usr/lib/opt/1Password \
  && rmdir /opt \
  && ln -s "$opt_link" /opt \
- # Create onepassword / onepassword-cli now, so we can bake the setgid bits
- # into /usr — which is read-only at runtime.
- && systemd-sysusers \
  # chrome-sandbox: setuid root (Electron sandbox, electron/electron#17972).
  && chmod 4755 /usr/lib/opt/1Password/chrome-sandbox \
  # BrowserSupport: setgid onepassword (browser-extension <-> desktop-app link).
