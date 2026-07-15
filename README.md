@@ -32,8 +32,6 @@ Fedora doesn't, and how it's trusted.
 ## What it adds
 
 - **Web browsers** (native RPMs): `firefox` and `chromium`.
-- **Nextcloud** desktop sync client (`nextcloud-client`) + `nextcloud-client-nautilus`
-  for GNOME Files sync-status emblems / share actions — native, not Flatpak.
 - **Synology Drive** sync client (`synology-drive-noextra`, from the
   [emixampp/synology-drive](https://github.com/EmixamPP/synology-drive) COPR) with
   its Nautilus extension. The `/opt/Synology` payload is relocated into `/usr` so it
