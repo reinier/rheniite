@@ -1,0 +1,28 @@
+#!/bin/sh
+# Align local user home paths with the Fedora-atomic convention (/var/home).
+#
+# Anaconda-based installers (the Zirconium ISO among them) can create the
+# primary user with HOME=/home/<user> — the symlinked spelling — instead of
+# the canonical /var/home/<user>, bypassing this image's correct useradd
+# default. Both spell the same directory (/home is an ostree-mandated symlink
+# to var/home), but software that canonicalises paths and then string-compares
+# them breaks on the mismatch: Synology Drive's daemon registers the sync root
+# canonicalised, its prefix match fails against /home/... queries from
+# Nautilus, and the sync emblems silently vanish. Full story:
+# backlog/var-home-passwd.md.
+#
+# Runs before systemd-user-sessions.service (the gate for user logins), so no
+# user processes exist yet and usermod can't refuse with "user is currently
+# used by process". Idempotent: after the rewrite — or on a correctly
+# installed machine — the loop matches nothing. Only regular local accounts
+# (1000 <= uid < 65534) whose data really lives under /var/home are touched.
+set -eu
+
+while IFS=: read -r name _ uid _ _ home _; do
+    case "$uid" in ''|*[!0-9]*) continue ;; esac
+    [ "$uid" -ge 1000 ] && [ "$uid" -lt 65534 ] || continue
+    case "$home" in /home/*) ;; *) continue ;; esac
+    tail="${home#/home/}"
+    [ -d "/var/home/$tail" ] || continue
+    usermod -d "/var/home/$tail" "$name"
+done < /etc/passwd

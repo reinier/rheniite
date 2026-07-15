@@ -33,3 +33,6 @@ later (by you or by Claude) without re-deriving the analysis.
 - [1password-opt-layout.md](1password-opt-layout.md) — 1Password 8.12.28 moved its
   payload to `/opt/1Password`, breaking every image build; same relocation
   treatment as Synology Drive.
+- [var-home-passwd.md](var-home-passwd.md) — the Zirconium ISO creates users with
+  `/home/<user>` instead of the atomic-convention `/var/home/<user>`, breaking
+  path-canonicalising software (Synology emblems); first-boot guard + kickstart.
