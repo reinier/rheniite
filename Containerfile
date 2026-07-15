@@ -169,6 +169,21 @@ RUN dnf5 -y install system-config-printer \
 # never ships. Enablement + the personal mapping live in dotfiles-rheniite.
 COPY --from=keyd-build /out/ /
 
+# --- /var/home passwd guard (first-boot repair for an installer deviation) ---
+# The Zirconium Anaconda ISO creates the primary user with HOME=/home/<user>
+# (the symlinked spelling) instead of the atomic convention /var/home/<user>,
+# even though this image's useradd default is already /var/home. Both spell
+# the same directory, but path-canonicalising software that string-compares
+# breaks on the mismatch — Synology Drive's Nautilus sync emblems were the
+# first casualty. This oneshot rewrites any such passwd entry before user
+# logins are allowed (so usermod never races a session), making installs from
+# the GUI ISO self-healing on first boot. Details + the upstream report for
+# the ISO itself: backlog/var-home-passwd.md.
+COPY files/fix-var-home /usr/libexec/fix-var-home
+COPY files/fix-var-home.service /usr/lib/systemd/system/fix-var-home.service
+RUN chmod 0755 /usr/libexec/fix-var-home \
+ && systemctl enable fix-var-home.service
+
 # --- System defaults (first-boot setup that shouldn't need interactive sudo) ---
 # Timezone baked in so a fresh install has the right clock without a `sudo
 # timedatectl` step mid-`chezmoi apply` (which prompts for a password late in a

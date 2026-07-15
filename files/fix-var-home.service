@@ -1,0 +1,13 @@
+[Unit]
+Description=Align user home paths with /var/home (Fedora atomic convention)
+# Before user logins are possible, so usermod never races a session; after
+# local-fs so /var/home and /etc are writable. See /usr/libexec/fix-var-home.
+After=local-fs.target
+Before=systemd-user-sessions.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/fix-var-home
+
+[Install]
+WantedBy=multi-user.target

@@ -33,6 +33,9 @@ later (by you or by Claude) without re-deriving the analysis.
 - [1password-opt-layout.md](1password-opt-layout.md) — 1Password 8.12.28 moved its
   payload to `/opt/1Password`, breaking every image build; same relocation
   treatment as Synology Drive.
+- [var-home-passwd.md](var-home-passwd.md) — the Zirconium ISO creates users with
+  `/home/<user>` instead of the atomic-convention `/var/home/<user>`, breaking
+  path-canonicalising software (Synology emblems); fixed by a first-boot guard.
 - [pin-stable-base.md](pin-stable-base.md) — pin the base to signed Zirconium
   snapshots and promote via Renovate/CI instead of rolling `:latest` + daily cron.
 - [stabilize-git-packages.md](stabilize-git-packages.md) — move Zirconium's
