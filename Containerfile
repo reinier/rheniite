@@ -176,9 +176,9 @@ COPY --from=keyd-build /out/ /
 # the same directory, but path-canonicalising software that string-compares
 # breaks on the mismatch — Synology Drive's Nautilus sync emblems were the
 # first casualty. This oneshot rewrites any such passwd entry before user
-# logins are allowed (so usermod never races a session), making every install
-# path self-healing; the scripted install (install/rheniite.ks) avoids the
-# deviation outright. Details + upstream report: backlog/var-home-passwd.md.
+# logins are allowed (so usermod never races a session), making installs from
+# the GUI ISO self-healing on first boot. Details + the upstream report for
+# the ISO itself: backlog/var-home-passwd.md.
 COPY files/fix-var-home /usr/libexec/fix-var-home
 COPY files/fix-var-home.service /usr/lib/systemd/system/fix-var-home.service
 RUN chmod 0755 /usr/libexec/fix-var-home \

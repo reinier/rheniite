@@ -35,4 +35,4 @@ later (by you or by Claude) without re-deriving the analysis.
   treatment as Synology Drive.
 - [var-home-passwd.md](var-home-passwd.md) — the Zirconium ISO creates users with
   `/home/<user>` instead of the atomic-convention `/var/home/<user>`, breaking
-  path-canonicalising software (Synology emblems); first-boot guard + kickstart.
+  path-canonicalising software (Synology emblems); fixed by a first-boot guard.

@@ -18,13 +18,12 @@ declarative layer on top that adds my extra software and config.
 sudo bootc switch ghcr.io/reinier/rheniite:latest
 ```
 
-Fresh installs: prefer the scripted path in [install/rheniite.ks](install/rheniite.ks)
-(boot any Fedora/Zirconium installer ISO with `inst.ks=...`) — it installs
-rheniite directly and pins the user's home to the atomic-convention
-`/var/home/<user>`. The interactive Zirconium ISO writes `/home/<user>`
-instead, which breaks path-canonicalising software (Synology Drive emblems);
-the image ships a first-boot guard (`fix-var-home.service`) that repairs such
-entries automatically — see [backlog/var-home-passwd.md](backlog/var-home-passwd.md).
+Fresh installs go through the Zirconium GUI ISO and then the rebase above.
+Note: that ISO creates users with `/home/<user>` instead of the
+atomic-convention `/var/home/<user>`, which breaks path-canonicalising
+software (Synology Drive emblems); the image ships a first-boot guard
+(`fix-var-home.service`) that repairs such entries automatically — see
+[backlog/var-home-passwd.md](backlog/var-home-passwd.md).
 
 Everything below that doesn't come from official Fedora repos is catalogued in
 [docs/third-party-repos.md](docs/third-party-repos.md) — what each source provides, why

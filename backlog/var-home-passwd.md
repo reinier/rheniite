@@ -1,11 +1,10 @@
 # /var/home passwd convention: guard + scripted install
 
-- **Status:** in-progress (guard + kickstart implemented on
+- **Status:** in-progress (guard implemented on
   `claude/github-build-failure-0n2idn`; machine migration and upstream report
   pending)
 - **Created:** 2026-07-15
-- **Area:** image (Containerfile, `files/fix-var-home*`), install
-  (`install/rheniite.ks`)
+- **Area:** image (Containerfile, `files/fix-var-home*`)
 - **Related:** [synology-drive.md](synology-drive.md) (the feature that exposed
   it), <https://github.com/zirconium-dev/zirconium> (installer ISO — upstream
   report to file)
@@ -52,10 +51,12 @@ GTK bookmarks, Flatpak overrides).
    Universal Blue images use the same first-boot-repair pattern. Cost: ~20
    lines that touch `/etc/passwd` at boot forever, and it papers over the
    installer bug rather than fixing it (hence the upstream report below).
-3. **Scripted install via kickstart** *(chosen)* — `install/rheniite.ks` pins
-   `user --homedir=/var/home/...` explicitly and installs rheniite directly via
-   `ostreecontainer` (no Zirconium-then-rebase step). Deterministic by
-   construction; the guard then never has anything to do.
+3. **Scripted install via kickstart** *(dropped)* — a `rheniite.ks` pinning
+   `user --homedir=/var/home/...` and installing rheniite directly via
+   `ostreecontainer` would be deterministic by construction, but installs
+   here always go through the GUI ISO, and the guard already makes that path
+   safe. Drafted and removed in the same branch; resurrect from history if
+   scripted installs ever become a thing.
 4. **bootc-image-builder** — flashable disk images with declared users;
    rejected as too much machinery for one laptop (and user-home support in its
    config needs verifying).
@@ -69,8 +70,6 @@ GTK bookmarks, Flatpak overrides).
 - `files/fix-var-home.service` → `/usr/lib/systemd/system/`: oneshot,
   `After=local-fs.target`, `Before=systemd-user-sessions.service`, enabled in
   the Containerfile.
-- `install/rheniite.ks`: the documented install path (placeholder password
-  hash; disk section reviewed per machine).
 
 ## Verification
 
@@ -81,8 +80,8 @@ GTK bookmarks, Flatpak overrides).
   reinierladan` shows `/var/home/...` either way.)
 - End-to-end (post-migration): `nautilus ~/SynologyDrive` shows sync emblems;
   Nextcloud emblems unaffected.
-- On the *next* fresh install (kickstart or interactive): first boot lands
-  with the canonical home with no manual step.
+- On the *next* fresh install from the GUI ISO: first boot lands with the
+  canonical home with no manual step (the guard's first real exercise).
 
 ## Rollback
 
