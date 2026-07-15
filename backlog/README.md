@@ -36,3 +36,11 @@ later (by you or by Claude) without re-deriving the analysis.
 - [var-home-passwd.md](var-home-passwd.md) — the Zirconium ISO creates users with
   `/home/<user>` instead of the atomic-convention `/var/home/<user>`, breaking
   path-canonicalising software (Synology emblems); fixed by a first-boot guard.
+- [pin-stable-base.md](pin-stable-base.md) — pin the base to signed Zirconium
+  snapshots and promote via Renovate/CI instead of rolling `:latest` + daily cron.
+- [stabilize-git-packages.md](stabilize-git-packages.md) — move Zirconium's
+  bleeding-edge git packages (niri, dms, quickshell) to stable releases via the
+  stable sibling COPRs (`avengemedia/dms 1.5.0`, `quickshell 0.3.0`) + Fedora niri.
+- [own-desktop-config.md](own-desktop-config.md) — replace zdots: own the niri/DMS
+  config in dotfiles-rheniite so it matches pinned-stable binaries (partner of the
+  above; zdots is authored for git-DMS and re-applied daily).
