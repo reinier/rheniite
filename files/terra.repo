@@ -1,0 +1,16 @@
+# Terra (Fyra Labs) — used only for the two CLI tools Fedora doesn't package:
+# starship and yazi. The Zirconium base used to enable Terra via terra-release, but
+# upstream removed it (zirconium commit 92a157b, 2026-07-20), so rheniite adds Terra
+# itself. `priority=200` (higher number = lower priority) keeps Fedora authoritative
+# for anything present in both, so enabling Terra can't quietly swap Fedora packages
+# for Terra builds.
+[terra]
+name=Terra $releasever
+baseurl=https://repos.fyralabs.com/terra$releasever
+type=rpm-md
+enabled=1
+gpgcheck=1
+repo_gpgcheck=0
+gpgkey=https://repos.fyralabs.com/terra$releasever/key.asc
+skip_if_unavailable=False
+priority=200

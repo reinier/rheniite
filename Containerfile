@@ -127,15 +127,31 @@ COPY files/1password-opt.conf /usr/lib/tmpfiles.d/1password-opt.conf
 COPY files/60-1password-ptrace.conf /usr/lib/sysctl.d/60-1password-ptrace.conf
 
 # --- CLI toolkit (moved off Homebrew in dotfiles-rheniite) ---
-# fish / eza / bat / jq / zip / fuse-sshfs from Fedora main; starship / lazygit / yazi
-# from Terra (already enabled by the base's terra-release). Baking these means they're
+# fish / eza / bat / jq / zip / fuse-sshfs from Fedora main. Baking these means they're
 # present at boot and update with the image instead of via a per-user `brew install`.
 # fuse-sshfs is the Fedora package name for the sshfs FUSE filesystem (mount remote
 # hosts over SSH); the `sshfs` command ships inside it.
 RUN dnf5 -y install \
       fish eza bat jq zip fuse-sshfs \
-      starship lazygit yazi \
  && dnf5 clean all
+# starship + yazi from Terra (neither is in Fedora). The Zirconium base USED to enable
+# Terra via terra-release, but upstream removed it (zirconium commit 92a157b,
+# 2026-07-20) — which is what broke this build two days running. So add Terra ourselves
+# and drop the repo right after (the self-contained pattern Steen uses).
+COPY files/terra.repo /etc/yum.repos.d/terra.repo
+RUN dnf5 -y install starship yazi \
+ && rm -f /etc/yum.repos.d/terra.repo \
+ && dnf5 clean all
+# lazygit is in NEITHER Fedora NOR Terra any more (Terra dropped it from both terra and
+# terra-extras), so bake the pinned upstream release binary — same pinned-artifact
+# approach as keyd. (Steen relocated lazygit to a distrobox; rheniite is being retired,
+# so keep it simple and baked.)
+ARG LAZYGIT_VERSION=0.63.1
+RUN curl -fsSL -o /tmp/lazygit.tar.gz \
+      "https://github.com/jesseduffield/lazygit/releases/download/v${LAZYGIT_VERSION}/lazygit_${LAZYGIT_VERSION}_linux_x86_64.tar.gz" \
+ && tar -xzf /tmp/lazygit.tar.gz -C /usr/bin lazygit \
+ && chmod 0755 /usr/bin/lazygit \
+ && rm -f /tmp/lazygit.tar.gz
 
 # --- VSCodium (native editor, from VSCodium's own RPM repo) ---
 # Native (not Flatpak) so the integrated terminal is the real host shell with brew
